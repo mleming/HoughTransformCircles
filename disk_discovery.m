@@ -26,7 +26,7 @@ function [imageout, circle_coords] = disk_discovery(image, radius, intensity_pol
 % STEP 1: Set up the proper variables
 dims = size(image);
 accumulator = zeros([dims(1) dims(2)]);
-imwrite(image, '1_original_image.png');
+%imwrite(image, '1_original_image.png');
 
 
 % STEP 2: Blur the original image
@@ -59,11 +59,11 @@ imwrite(Gmag, '3_gradient_intensity.png'); %Note: poor representation, numbers a
 max_gradient = 0;
 for i=1:size(Gmag(:))
 	if Gmag(i) > max_gradient
-        max_gradient = Gmag(i);
-    end
+		max_gradient = Gmag(i);
+	end
 end
 for i=1:size(Gmag(:))
-        Gmag(i) = Gmag(i)/max_gradient;
+	Gmag(i) = Gmag(i)/max_gradient;
 end
 imwrite(Gmag, '4_gradient_intensity_scaled.png');
 
@@ -77,14 +77,14 @@ imwrite(Gmag, '4_gradient_intensity_scaled.png');
 % and, if that vote fits inside of the image and the corresponding gradient
 % magnitude is high enough, it is cast.
 for x=1:dims(1)
-    for y=1:dims(2)
-        theta = Gdir(x,y) + 180*intensity_polarity; % The theta direction is reversed, depending on the polarity of the image
-        Vy = round(radius*sind(theta) + y);
-        Vx = round(radius*cosd(theta) + x);
-        if Vx > 0 && Vx < dims(1) && Vy > 0 && Vy < dims(2) && Gmag(x,y) > gradient_magnitude_threshold
-            accumulator(Vx, Vy) = accumulator(Vx, Vy) + sigmf(Gmag(x,y), [sigmoid_standard sigmoid_mean]);
-        end
-    end
+	for y=1:dims(2)
+		theta = Gdir(x,y) + 180*intensity_polarity; % The theta direction is reversed, depending on the polarity of the image
+		Vy = round(radius*sind(theta) + y);
+		Vx = round(radius*cosd(theta) + x);
+		if Vx > 0 && Vx < dims(1) && Vy > 0 && Vy < dims(2) && Gmag(x,y) > gradient_magnitude_threshold
+			accumulator(Vx, Vy) = accumulator(Vx, Vy) + sigmf(Gmag(x,y), [sigmoid_standard sigmoid_mean]);
+		end
+	end
 end
 imwrite(accumulator, '5_initial_accumulator.png');
 
@@ -93,7 +93,7 @@ accumulator_blur = imfilter(accumulator,G,'same');
 max_blur = -1;
 for i=1:size(accumulator_blur(:))
 	if accumulator_blur(i) > max_blur
-        max_blur = accumulator_blur(i);
+        	max_blur = accumulator_blur(i);
 	end
 end
 imwrite(accumulator_blur, '6_blurred_accumulator.png');
@@ -108,7 +108,7 @@ imwrite(accumulator_blur, '6_blurred_accumulator.png');
 vote_threshold = max_blur/10;
 for i=1:size(accumulator_blur(:))
 	if accumulator_blur(i) < vote_threshold
-        accumulator(i) = 0;
+		accumulator(i) = 0;
 	end
 end
 imwrite(accumulator, '7_corrected_accumulator.png');
@@ -123,11 +123,11 @@ imwrite(accumulator, '7_corrected_accumulator.png');
 
 k_means_indice = [];
 for x=1:dims(1)
-    for y=1:dims(2)
-        if accumulator(x,y) > 0
-            k_means_indice = [k_means_indice [x y]'];
-        end
-    end
+	for y=1:dims(2)
+		if accumulator(x,y) > 0
+			k_means_indice = [k_means_indice [x y]'];
+		end
+	end
 end
 
 k_overestimated_value = 15;
@@ -135,25 +135,25 @@ k_repetitions = 3;
 center_list = [];
 
 for e=0:k_repetitions
-    indices = kmeans(k_means_indice', k_overestimated_value, 'emptyaction', 'drop');
-    for k=1:k_overestimated_value
-        xmax = -1;
-        xmaxindice = -1;
-        for i=1:size(indices)
-            if indices(i) == k && accumulator(k_means_indice(1,i), k_means_indice(2,i)) > xmax
-                xmax = accumulator(k_means_indice(1,i), k_means_indice(2,i));
-                xmaxindice = [k_means_indice(2,i) k_means_indice(1,i)];
-            end
-        end
-        if xmaxindice ~= -1
-            center_list = [center_list xmaxindice'];
-        end
-    end
+	indices = kmeans(k_means_indice', k_overestimated_value, 'emptyaction', 'drop');
+	for k=1:k_overestimated_value
+		xmax = -1;
+		xmaxindice = -1;
+		for i=1:size(indices)
+			if indices(i) == k && accumulator(k_means_indice(1,i), k_means_indice(2,i)) > xmax
+				xmax = accumulator(k_means_indice(1,i), k_means_indice(2,i));
+				xmaxindice = [k_means_indice(2,i) k_means_indice(1,i)];
+			end
+		end
+		if xmaxindice ~= -1
+			center_list = [center_list xmaxindice'];
+		end
+	end
 end
 % This is purely to display all of the points we're currently working with
 point_display = accumulator(:,:);
 for i=1:size(center_list,2)
-   point_display = insertShape(point_display, 'FilledCircle', [center_list(:,i)' 2], 'Opacity', 1, 'Color', 'green');
+	point_display = insertShape(point_display, 'FilledCircle', [center_list(:,i)' 2], 'Opacity', 1, 'Color', 'green');
 end
 imwrite(point_display,'8_k_estimates_display.png');
 
@@ -168,32 +168,31 @@ merged_center_list = [];
 pixel_distance_threshold = 15;
 
 for i=1:size(center_list,2)
-    is_in_list = 0;
-    for j=1:size(merged_center_list,2)
-        p1 = merged_center_list(:,j);
-        p2 = center_list(:,i);
-        if pdist([p1(1) p1(2) ; p2(1) p2(2)], 'euclidean') < pixel_distance_threshold
-            merged_center_list(:,j) = [((p1(1) + p2(1))/2) ((p1(2) + p2(2))/2)]';
-            is_in_list = 1;
-        end
-    end
-    if is_in_list == 0
-        merged_center_list = [merged_center_list center_list(:,i)];
-    end
-    
+	is_in_list = 0;
+	for j=1:size(merged_center_list,2)
+		p1 = merged_center_list(:,j);
+		p2 = center_list(:,i);
+		if pdist([p1(1) p1(2) ; p2(1) p2(2)], 'euclidean') < pixel_distance_threshold
+			merged_center_list(:,j) = [((p1(1) + p2(1))/2) ((p1(2) + p2(2))/2)]';
+			is_in_list = 1;
+		end
+	end
+	if is_in_list == 0
+		merged_center_list = [merged_center_list center_list(:,i)];
+	end
 end
 
 % Display the centers on both the accumulator and the initial image
 accumulator_center_display = accumulator(:,:);
 for i=1:size(merged_center_list,2)
-   accumulator_center_display = insertShape(accumulator_center_display, 'FilledCircle', [merged_center_list(:,i)' 4], 'Opacity', 1, 'Color', 'green');
+	accumulator_center_display = insertShape(accumulator_center_display, 'FilledCircle', [merged_center_list(:,i)' 4], 'Opacity', 1, 'Color', 'green');
 end
 imwrite(accumulator_center_display,'9A_accumulator_center_display.png');
 
 
 image_center_display = image(:,:);
 for i=1:size(merged_center_list,2)
-   image_center_display = insertShape(image_center_display, 'FilledCircle', [merged_center_list(:,i)' 4], 'Opacity', 1, 'Color', 'green');
+	image_center_display = insertShape(image_center_display, 'FilledCircle', [merged_center_list(:,i)' 4], 'Opacity', 1, 'Color', 'green');
 end
 imwrite(image_center_display,'9B_final_center_display.png');
 
