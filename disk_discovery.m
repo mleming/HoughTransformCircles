@@ -26,7 +26,7 @@ function [imageout, circle_coords] = disk_discovery(image, radius, intensity_pol
 % STEP 1: Set up the proper variables
 dims = size(image);
 accumulator = zeros([dims(1) dims(2)]);
-%imwrite(image, '1_original_image.png');
+imwrite(image, '1_original_image.png');
 
 
 % STEP 2: Blur the original image
